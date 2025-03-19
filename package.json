@@ -1,0 +1,20 @@
+{
+  "name": "react-payment-request",
+  "module": "src/index.ts",
+  "type": "module",
+  "main": "dist/apple-pay.js",
+  "exports": {
+    ".": "./dist/apple-pay.js"
+  },
+  "devDependencies": {
+    "@types/applepayjs": "^14.0.9",
+    "@types/bun": "latest",
+    "@types/react": "^19.0.11",
+    "@types/react-dom": "^19.0.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
