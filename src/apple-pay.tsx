@@ -24,6 +24,10 @@ interface ApplePayProps {
   buttonProps: ApplePayButtonProps;
 }
 
+interface PaymentRequestEvents {
+  onMerchantValidation: (event: MerchantValidationEvent) => void;
+}
+
 function applePayIsAvailable(): boolean {
   return window.ApplePaySession && typeof window.ApplePaySession === "function";
 }
@@ -117,9 +121,15 @@ export function ApplePay({
         paymentMethodData,
         paymentDetails,
         paymentOptions
-      );
+      ) as ApplePayPaymentRequest;
+
+      request.onmerchantvalidation = (event) => {
+        // TODO: Map to context
+        console.log("onmerchantvalidation", event);
+      };
 
       const response = await request.show();
+
       const status = "success";
       await response.complete(status);
     } catch (e) {
@@ -128,7 +138,7 @@ export function ApplePay({
   };
 
   if (!isApplePayAvailable) {
-    // TODO: Show disabled button
+    // TODO: Allow for user interactable fallback
     return <div>Apple Pay is not available</div>;
   }
 

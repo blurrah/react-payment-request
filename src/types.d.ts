@@ -48,3 +48,19 @@ declare global {
     }
   }
 }
+
+class ApplePayMerchantValidationEvent extends Event {
+  readonly type: "merchantvalidation";
+  /**
+   * The name of the payment method.
+   */
+  readonly methodName: string;
+  /**
+   * The URL your server must use to validate itself and obtain a merchant session object.
+   */
+  readonly validationURL: string;
+}
+
+interface ApplePayPaymentRequest extends PaymentRequest {
+  onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
+}
