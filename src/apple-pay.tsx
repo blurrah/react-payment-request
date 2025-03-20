@@ -1,6 +1,5 @@
-"use client"; // TODO: should move to build banner
-
 import { type ReactNode, useEffect, useState } from "react";
+import { useLoadSuspenseScript } from "./use-load-suspense-script";
 
 export function ApplePayProvider(): ReactNode {
   return <div>ApplePayProvider</div>;
@@ -57,6 +56,10 @@ interface ApplePayProps {
   buttonProps: ApplePayButtonProps;
 }
 
+function applePayIsAvailable(): boolean {
+  return window.ApplePaySession && typeof window.ApplePaySession === "function";
+}
+
 export function ApplePay({
   scriptUrl = "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js",
   merchantIdentifier,
@@ -68,56 +71,29 @@ export function ApplePay({
     locale: "en-US",
   },
 }: ApplePayProps): ReactNode {
-  // Load Apple Pay SDK script when component mounts
-  useEffect(() => {
-    // Check if the script is already loaded
-    if (!document.querySelector('script[src*="apple-pay-sdk.js"]')) {
-      const script = document.createElement("script");
-      script.src =
-        "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js";
-      script.crossOrigin = "anonymous";
-
-      // Handle loading errors
-      script.onerror = () => {
-        console.error("Failed to load Apple Pay SDK");
-      };
-
-      document.head.appendChild(script);
-    }
-
-    // Clean up function
-    return () => {
-      // Optional: remove script on component unmount if needed
-      const script = document.querySelector('script[src*="apple-pay-sdk.js"]');
-      if (script) document.head.removeChild(script);
-    };
-  }, []);
+  // No need to check loading state as we use suspense/error boundary to handle it
+  useLoadSuspenseScript(scriptUrl);
 
   // State to track if Apple Pay SDK is loaded
-  const [isApplePayLoaded, setIsApplePayLoaded] = useState(false);
+  const [isApplePayAvailable, setIsApplePayAvailable] = useState(
+    applePayIsAvailable()
+  );
 
   // Check if Apple Pay SDK is loaded
   useEffect(() => {
-    const checkApplePayLoaded = () => {
-      // Check if ApplePaySession is available in window
-      if (
-        window.ApplePaySession &&
-        typeof window.ApplePaySession === "function"
-      ) {
-        setIsApplePayLoaded(true);
-      }
-    };
-
-    // Check immediately in case script is already loaded
-    checkApplePayLoaded();
+    if (applePayIsAvailable()) {
+      setIsApplePayAvailable(true);
+    }
 
     // Set up event listener for script load
     const handleScriptLoad = () => {
-      checkApplePayLoaded();
+      if (applePayIsAvailable()) {
+        setIsApplePayAvailable(true);
+      }
     };
 
     // Add event listener to the script
-    const script = document.querySelector('script[src*="apple-pay-sdk.js"]');
+    const script = document.querySelector(`script[src="${scriptUrl}"]`);
     if (script) {
       script.addEventListener("load", handleScriptLoad);
     }
@@ -126,7 +102,7 @@ export function ApplePay({
         script.removeEventListener("load", handleScriptLoad);
       }
     };
-  }, []);
+  }, [scriptUrl]);
 
   const handleApplePayButtonClick = async () => {
     console.log("onApplePayButtonClicked");
@@ -183,21 +159,24 @@ export function ApplePay({
     }
   };
 
-  if (!isApplePayLoaded) {
-    return <div>Loading Apple Pay SDK...</div>;
+  if (!isApplePayAvailable) {
+    // TODO: Show disabled button
+    return <div>Apple Pay is not available</div>;
   }
 
   // Callback ref to handle Apple Pay button click
+  // Normal useRef doesn't work with custom elements it seems
   const buttonRef = (element: HTMLElement | null) => {
     if (element) {
       element.addEventListener("click", handleApplePayButtonClick);
     }
+
+    return () => {
+      if (element) {
+        element.removeEventListener("click", handleApplePayButtonClick);
+      }
+    };
   };
 
-  return (
-    <>
-      {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-      <apple-pay-button ref={buttonRef} {...buttonProps}></apple-pay-button>
-    </>
-  );
+  return <apple-pay-button ref={buttonRef} {...buttonProps} />;
 }

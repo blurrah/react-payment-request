@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { ApplePay } from "react-payment-request";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
@@ -9,7 +9,9 @@ function App() {
 
   return (
     <>
-      <ApplePay merchantIdentifier="merchant.com.example" />
+      <Suspense fallback={<div>Loading WITH SUSPENSE</div>}>
+        <ApplePay merchantIdentifier="merchant.com.example" />
+      </Suspense>
       <div>
         <a href="https://vite.dev" target="_blank" rel="noreferrer">
           <img src={viteLogo} className="logo" alt="Vite logo" />
