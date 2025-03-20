@@ -54,6 +54,7 @@ interface ApplePayProps {
    */
   onLoad?: () => void;
   onError?: (error: Error) => void;
+  buttonProps: ApplePayButtonProps;
 }
 
 export function ApplePay({
@@ -61,6 +62,11 @@ export function ApplePay({
   merchantIdentifier,
   onLoad,
   onError,
+  buttonProps = {
+    buttonstyle: "black",
+    type: "plain",
+    locale: "en-US",
+  },
 }: ApplePayProps): ReactNode {
   // Load Apple Pay SDK script when component mounts
   useEffect(() => {
@@ -191,12 +197,7 @@ export function ApplePay({
   return (
     <>
       {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-      <apple-pay-button
-        ref={buttonRef}
-        buttonstyle="black"
-        type="plain"
-        locale="en-US"
-      ></apple-pay-button>
+      <apple-pay-button ref={buttonRef} {...buttonProps}></apple-pay-button>
     </>
   );
 }
