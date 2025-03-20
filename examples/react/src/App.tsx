@@ -1,4 +1,5 @@
 import { Suspense, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { ApplePay } from "react-payment-request";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
@@ -10,7 +11,9 @@ function App() {
   return (
     <>
       <Suspense fallback={<div>Loading WITH SUSPENSE</div>}>
-        <ApplePay merchantIdentifier="merchant.com.example" />
+        <ErrorBoundary fallback={<div>Error</div>}>
+          <ApplePay />
+        </ErrorBoundary>
       </Suspense>
       <div>
         <a href="https://vite.dev" target="_blank" rel="noreferrer">
@@ -22,7 +25,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <button type="button" onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
         <p>

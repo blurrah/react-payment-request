@@ -5,38 +5,6 @@ export function ApplePayProvider(): ReactNode {
   return <div>ApplePayProvider</div>;
 }
 
-/**
- * Loads the Apple Pay SDK script from the given source.
- * Default endpoint is https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js
- * @param source
- * @returns
- */
-export function useApplePayScript(
-  source = "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"
-): { isLoaded: boolean } {
-  const [isLoaded, setIsLoaded] = useState(false);
-  useEffect(() => {
-    // Check if the script is already loaded
-    if (!document.querySelector('script[src*="apple-pay-sdk.js"]')) {
-      const script = document.createElement("script");
-      script.src =
-        "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js";
-      script.crossOrigin = "anonymous";
-
-      // Handle loading errors
-      script.onerror = () => {
-        console.error("Failed to load Apple Pay SDK");
-      };
-
-      document.head.appendChild(script);
-    }
-  }, []);
-
-  return {
-    isLoaded,
-  };
-}
-
 interface ApplePayProps {
   /**
    * The URL of the Apple Pay SDK script.
@@ -72,7 +40,7 @@ export function ApplePay({
   },
 }: ApplePayProps): ReactNode {
   // No need to check loading state as we use suspense/error boundary to handle it
-  useLoadSuspenseScript(scriptUrl);
+  useLoadSuspenseScript({ src: scriptUrl, throwError: true });
 
   // State to track if Apple Pay SDK is loaded
   const [isApplePayAvailable, setIsApplePayAvailable] = useState(
