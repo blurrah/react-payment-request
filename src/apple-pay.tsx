@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useLoadSuspenseScript } from "./use-load-suspense-script";
 
 export function ApplePayProvider(): ReactNode {
@@ -21,7 +21,10 @@ interface ApplePayProps {
    */
   onLoad?: () => void;
   onError?: (error: Error) => void;
-  buttonProps: ApplePayButtonProps;
+  onMerchantValidation?: (event: MerchantValidationEvent) => void;
+  children: (requestPayment: () => void) => ReactNode;
+  paymentMethodData: Array<PaymentMethodData>;
+  paymentDetails: PaymentDetailsInit;
 }
 
 interface PaymentRequestEvents {
@@ -35,46 +38,15 @@ function applePayIsAvailable(): boolean {
 export function ApplePay({
   scriptUrl = "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js",
   merchantIdentifier,
+  onMerchantValidation,
   onLoad,
   onError,
-  buttonProps = {
-    buttonstyle: "black",
-    type: "plain",
-    locale: "en-US",
-  },
+  paymentMethodData,
+  paymentDetails,
+  children,
 }: ApplePayProps): ReactNode {
   // No need to check loading state as we use suspense/error boundary to handle it
   useLoadSuspenseScript({ src: scriptUrl, throwError: true });
-
-  // State to track if Apple Pay SDK is loaded
-  const [isApplePayAvailable, setIsApplePayAvailable] = useState(
-    applePayIsAvailable()
-  );
-
-  // Check if Apple Pay SDK is loaded
-  useEffect(() => {
-    if (applePayIsAvailable()) {
-      setIsApplePayAvailable(true);
-    }
-
-    // Set up event listener for script load
-    const handleScriptLoad = () => {
-      if (applePayIsAvailable()) {
-        setIsApplePayAvailable(true);
-      }
-    };
-
-    // Add event listener to the script
-    const script = document.querySelector(`script[src="${scriptUrl}"]`);
-    if (script) {
-      script.addEventListener("load", handleScriptLoad);
-    }
-    return () => {
-      if (script) {
-        script.removeEventListener("load", handleScriptLoad);
-      }
-    };
-  }, [scriptUrl]);
 
   const handleApplePayButtonClick = async () => {
     console.log("onApplePayButtonClicked");
@@ -84,29 +56,7 @@ export function ApplePay({
     }
 
     try {
-      // Define PaymentMethodData
-      const paymentMethodData = [
-        {
-          supportedMethods: "https://apple.com/apple-pay",
-          data: {
-            version: 3,
-            merchantIdentifier: "merchant.com.apdemo",
-            merchantCapabilities: ["supports3DS"],
-            supportedNetworks: ["amex", "discover", "masterCard", "visa"],
-            countryCode: "US",
-          },
-        },
-      ];
       // Define PaymentDetails
-      const paymentDetails = {
-        total: {
-          label: "Demo (Card is not charged)",
-          amount: {
-            value: "27.50",
-            currency: "USD",
-          },
-        },
-      };
       // Define PaymentOptions
       const paymentOptions = {
         requestPayerName: false,
@@ -126,6 +76,7 @@ export function ApplePay({
       request.onmerchantvalidation = (event) => {
         // TODO: Map to context
         console.log("onmerchantvalidation", event);
+        onMerchantValidation?.(event);
       };
 
       const response = await request.show();
@@ -137,24 +88,33 @@ export function ApplePay({
     }
   };
 
-  if (!isApplePayAvailable) {
-    // TODO: Allow for user interactable fallback
-    return <div>Apple Pay is not available</div>;
-  }
+  return children(handleApplePayButtonClick);
+}
 
+/**
+ * Apple Pay Button that uses the built-in Apple Pay custom element
+ * Pretty much always use this as you also get the modal on non-Apple devices
+ */
+export function ApplePayButton({
+  buttonProps,
+  onClick,
+}: {
+  buttonProps?: ApplePayButtonProps;
+  onClick: () => void;
+}): ReactNode {
   // Callback ref to handle Apple Pay button click
   // Normal useRef doesn't work with custom elements it seems
   const buttonRef = (element: HTMLElement | null) => {
     if (element) {
-      element.addEventListener("click", handleApplePayButtonClick);
+      element.addEventListener("click", onClick);
     }
 
     return () => {
       if (element) {
-        element.removeEventListener("click", handleApplePayButtonClick);
+        element.removeEventListener("click", onClick);
       }
     };
   };
 
-  return <apple-pay-button ref={buttonRef} {...buttonProps} />;
+  return <apple-pay-button {...buttonProps} ref={buttonRef} />;
 }

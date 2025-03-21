@@ -32,7 +32,7 @@ const scriptCache = new Map<
  *   </ErrorBoundary>
  * </Suspense>
  */
-export function useLoadSuspenseScript({
+export async function useLoadSuspenseScript({
   // The source of the script to load
   src,
   // Whether to throw an error to be catched by an error boundary
@@ -40,7 +40,7 @@ export function useLoadSuspenseScript({
 }: {
   src: string;
   throwError?: boolean;
-}): boolean {
+}): Promise<boolean> {
   if (!scriptCache.has(src)) {
     scriptCache.set(src, {
       status: "pending",
@@ -50,8 +50,6 @@ export function useLoadSuspenseScript({
 
   // biome-ignore lint/style/noNonNullAssertion: We already checked for the existence of the script
   const cache = scriptCache.get(src)!;
-
-  console.log("cache", cache);
 
   if (!cache.promise) {
     cache.promise = new Promise((resolve, reject) => {
