@@ -1,11 +1,12 @@
+/// <reference types="@types/applepayjs" />
 import type { ReactNode } from "react";
-import { useLoadSuspenseScript } from "./use-load-suspense-script";
+import { useLoadSuspenseScript } from "./use-load-suspense-script.ts";
 
 export function ApplePayProvider(): ReactNode {
   return <div>ApplePayProvider</div>;
 }
 
-interface ApplePayProps {
+type ApplePayProps = {
   /**
    * The URL of the Apple Pay SDK script.
    * This is used to construct the Apple Pay button
@@ -21,18 +22,14 @@ interface ApplePayProps {
    */
   onLoad?: () => void;
   onError?: (error: Error) => void;
-  onMerchantValidation?: (event: MerchantValidationEvent) => void;
+  onMerchantValidation?: (event: ApplePayMerchantValidationEvent) => void;
   children: (requestPayment: () => void) => ReactNode;
   paymentMethodData: Array<PaymentMethodData>;
   paymentDetails: PaymentDetailsInit;
-}
+} & PaymentRequestEvents;
 
 interface PaymentRequestEvents {
-  onMerchantValidation: (event: MerchantValidationEvent) => void;
-}
-
-function applePayIsAvailable(): boolean {
-  return window.ApplePaySession && typeof window.ApplePaySession === "function";
+  onMerchantValidation: (event: ApplePayMerchantValidationEvent) => void;
 }
 
 export function ApplePay({
@@ -73,9 +70,10 @@ export function ApplePay({
         paymentOptions
       ) as ApplePayPaymentRequest;
 
-      request.onmerchantvalidation = (event) => {
-        // TODO: Map to context
-        console.log("onmerchantvalidation", event);
+      // Cast the request to ApplePayPaymentRequest to access onmerchantvalidation
+      request.onmerchantvalidation = (
+        event: ApplePayMerchantValidationEvent
+      ) => {
         onMerchantValidation?.(event);
       };
 

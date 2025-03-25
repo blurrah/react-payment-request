@@ -1,11 +1,9 @@
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ApplePay, ApplePayButton } from "react-payment-request";
 import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <>
       <Suspense fallback={<div>Loading WITH SUSPENSE</div>}>

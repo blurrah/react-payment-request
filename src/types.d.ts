@@ -1,3 +1,5 @@
+/// <reference types="@types/applepayjs" />
+
 // Extend JSX.IntrinsicElements to add the apple-pay-button web component
 type ApplePayButtonProps = {
   /**
@@ -61,6 +63,6 @@ class ApplePayMerchantValidationEvent extends Event {
   readonly validationURL: string;
 }
 
-interface ApplePayPaymentRequest extends PaymentRequest {
-  onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
-}
+// interface ApplePayPaymentRequest extends PaymentRequest {
+//   onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
+// }

@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext", "dom", "dom.iterable"],
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "NodeNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "declaration": true,
     "isolatedDeclarations": true,
 
     // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "emitDeclarationOnly": true,
@@ -26,6 +26,6 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "types": ["@types/applepayjs"],
+
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }
