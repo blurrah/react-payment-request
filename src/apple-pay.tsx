@@ -13,19 +13,13 @@ type ApplePayProps = {
    * @default https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js
    */
   scriptUrl?: string;
-  /**
-   * The merchant identifier for the Apple Pay merchant.
-   */
-  merchantIdentifier: string;
-  /**
-   * The onLoad callback function.
-   */
-  onLoad?: () => void;
-  onError?: (error: Error) => void;
   onMerchantValidation?: (event: ApplePayMerchantValidationEvent) => void;
-  children: (requestPayment: () => void) => ReactNode;
+  children: (
+    paymentRequest: () => Promise<ApplePayPaymentRequest | undefined>
+  ) => ReactNode;
   paymentMethodData: Array<PaymentMethodData>;
   paymentDetails: PaymentDetailsInit;
+  paymentOptions?: PaymentOptions;
 } & PaymentRequestEvents;
 
 interface PaymentRequestEvents {
@@ -34,59 +28,48 @@ interface PaymentRequestEvents {
 
 export function ApplePay({
   scriptUrl = "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js",
-  merchantIdentifier,
   onMerchantValidation,
-  onLoad,
-  onError,
   paymentMethodData,
   paymentDetails,
+  paymentOptions,
   children,
 }: ApplePayProps): ReactNode {
   // No need to check loading state as we use suspense/error boundary to handle it
   useLoadSuspenseScript({ src: scriptUrl, throwError: true });
 
-  const handleApplePayButtonClick = async () => {
-    console.log("onApplePayButtonClicked");
+  /**
+   * Request payment from Apple Pay using the Payment Request API
+   *
+   * This returns the payment request after setting up the event handlers
+   * so you'll manually need to call show() and complete() in the caller
+   *
+   * @example
+   * <ApplePay>
+   *  {request => <button onClick={() => request.show()}>Pay</button>}
+   * </ApplePay>
+   */
+  const paymentRequest = async () => {
     // Consider falling back to Apple Pay JS if Payment Request is not available.
     if (!PaymentRequest) {
       return;
     }
 
-    try {
-      // Define PaymentDetails
-      // Define PaymentOptions
-      const paymentOptions = {
-        requestPayerName: false,
-        requestPayerEmail: false,
-        requestPayerPhone: false,
-        requestShipping: false,
-        shippingType: "shipping",
-      } satisfies PaymentOptions;
+    // Create PaymentRequest
+    const request = new PaymentRequest(
+      paymentMethodData,
+      paymentDetails,
+      paymentOptions
+    ) as ApplePayPaymentRequest;
 
-      // Create PaymentRequest
-      const request = new PaymentRequest(
-        paymentMethodData,
-        paymentDetails,
-        paymentOptions
-      ) as ApplePayPaymentRequest;
+    // Cast the request to ApplePayPaymentRequest to access onmerchantvalidation
+    request.onmerchantvalidation = (event: ApplePayMerchantValidationEvent) => {
+      onMerchantValidation?.(event);
+    };
 
-      // Cast the request to ApplePayPaymentRequest to access onmerchantvalidation
-      request.onmerchantvalidation = (
-        event: ApplePayMerchantValidationEvent
-      ) => {
-        onMerchantValidation?.(event);
-      };
-
-      const response = await request.show();
-
-      const status = "success";
-      await response.complete(status);
-    } catch (e) {
-      // Handle errors
-    }
+    return request;
   };
 
-  return children(handleApplePayButtonClick);
+  return children(paymentRequest);
 }
 
 /**

@@ -63,6 +63,6 @@ class ApplePayMerchantValidationEvent extends Event {
   readonly validationURL: string;
 }
 
-// interface ApplePayPaymentRequest extends PaymentRequest {
-//   onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
-// }
+interface ApplePayPaymentRequest extends PaymentRequest {
+  onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
+}

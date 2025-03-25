@@ -12,5 +12,6 @@ await Bun.build({
       forceGenerate: true,
     }),
   ],
+  external: ["react"],
   sourcemap: "external",
 });

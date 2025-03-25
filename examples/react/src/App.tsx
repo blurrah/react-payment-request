@@ -9,7 +9,6 @@ function App() {
       <Suspense fallback={<div>Loading WITH SUSPENSE</div>}>
         <ErrorBoundary fallback={<div>Error</div>}>
           <ApplePay
-            merchantIdentifier="bla"
             onMerchantValidation={() => {
               console.log("This is working");
             }}
@@ -34,8 +33,38 @@ function App() {
                 },
               },
             }}
+            paymentOptions={{
+              requestPayerName: false,
+              requestPayerEmail: false,
+              requestPayerPhone: false,
+              requestShipping: false,
+            }}
           >
-            {(requestPayment) => <ApplePayButton onClick={requestPayment} />}
+            {(paymentRequest) => (
+              <>
+                <style>
+                  {`
+apple-pay-button {
+  --apple-pay-button-width: 172px;
+  --apple-pay-button-height: 43px;
+  --apple-pay-button-border-radius: 9px;
+  --apple-pay-button-padding: 0px 0px;
+  --apple-pay-button-box-sizing: border-box;
+}
+                  `}
+                </style>
+                <ApplePayButton
+                  buttonProps={{
+                    type: "buy",
+                  }}
+                  onClick={async () => {
+                    const request = await paymentRequest();
+                    const response = await request.show();
+                    await response.complete("success");
+                  }}
+                />
+              </>
+            )}
           </ApplePay>
         </ErrorBoundary>
       </Suspense>
