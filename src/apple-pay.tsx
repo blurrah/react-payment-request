@@ -98,8 +98,13 @@ export function ApplePay({
 export function ApplePayButton({
   buttonProps,
   onClick,
+  "data-testid": testId,
 }: {
   buttonProps?: ApplePayButtonProps;
+  /**
+   * Optional data-testid to use for testing
+   */
+  "data-testid"?: string;
   onClick: () => void;
 }): ReactNode {
   // Callback ref to handle Apple Pay button click
@@ -119,6 +124,7 @@ export function ApplePayButton({
   return (
     <apple-pay-button
       {...buttonProps}
+      data-testid={testId}
       style={{ visibility: "hidden" }}
       ref={buttonRef}
     />
