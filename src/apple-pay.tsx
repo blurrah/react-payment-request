@@ -102,7 +102,8 @@ export function ApplePayButton({
 }: {
   buttonProps?: ApplePayButtonProps;
   /**
-   * Optional data-testid to use for testing
+   * Used as fallback for testing as no text or roles are rendered
+   * by default.
    */
   "data-testid"?: string;
   onClick: () => void;
@@ -122,11 +123,6 @@ export function ApplePayButton({
   };
 
   return (
-    <apple-pay-button
-      {...buttonProps}
-      data-testid={testId}
-      style={{ visibility: "hidden" }}
-      ref={buttonRef}
-    />
+    <apple-pay-button {...buttonProps} data-testid={testId} ref={buttonRef} />
   );
 }
