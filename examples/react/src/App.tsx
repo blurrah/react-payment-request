@@ -9,8 +9,21 @@ function App() {
       <Suspense fallback={<div>Loading WITH SUSPENSE</div>}>
         <ErrorBoundary fallback={<div>Error</div>}>
           <ApplePay
-            onMerchantValidation={() => {
+            onMerchantValidation={(event) => {
               console.log("This is working");
+              // event.complete({});
+            }}
+            onPaymentMethodChange={(event) => {
+              console.log("Payment method changed");
+              event.updateWith({});
+            }}
+            onShippingAddressChange={(event) => {
+              console.log("Shipping address changed");
+              event.updateWith({});
+            }}
+            onShippingOptionChange={(event) => {
+              console.log("Shipping option changed");
+              event.updateWith({});
             }}
             paymentMethodData={[
               {

@@ -27,12 +27,14 @@ interface PaymentRequestEvents {
   onPaymentMethodChange: (event: PaymentMethodChangeEvent) => void;
   onShippingAddressChange: (event: PaymentRequestUpdateEvent) => void;
   onShippingOptionChange: (event: PaymentRequestUpdateEvent) => void;
-  onComplete: (event: PaymentRequestUpdateEvent) => void;
 }
 
 export function ApplePay({
   scriptUrl = "https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js",
   onMerchantValidation,
+  onPaymentMethodChange,
+  onShippingAddressChange,
+  onShippingOptionChange,
   paymentMethodData,
   paymentDetails,
   paymentOptions,
@@ -66,17 +68,22 @@ export function ApplePay({
     ) as ApplePayPaymentRequest;
 
     paymentRequest.addEventListener("merchantvalidation", (event) => {
+      // This event does not exist in base payment request API
+      // but gets added by Apple Pay JS
       onMerchantValidation?.(event as ApplePayMerchantValidationEvent);
     });
 
     paymentRequest.addEventListener("paymentmethodchange", (event) => {
-      onPaymentMethodChange?.(event as ApplePayPaymentMethodChangeEvent);
+      onPaymentMethodChange?.(event);
     });
 
-    // Cast the request to ApplePayPaymentRequest to access onmerchantvalidation
-    request.onmerchantvalidation = (event: ApplePayMerchantValidationEvent) => {
-      onMerchantValidation?.(event);
-    };
+    paymentRequest.addEventListener("shippingaddresschange", (event) => {
+      onShippingAddressChange?.(event);
+    });
+
+    paymentRequest.addEventListener("shippingoptionchange", (event) => {
+      onShippingOptionChange?.(event);
+    });
 
     return paymentRequest;
   };
