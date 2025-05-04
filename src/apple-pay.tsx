@@ -15,7 +15,7 @@ type ApplePayProps = {
   scriptUrl?: string;
   onMerchantValidation?: (event: ApplePayMerchantValidationEvent) => void;
   children: (
-    paymentRequest: () => Promise<ApplePayPaymentRequest | undefined>
+    paymentRequest: () => ApplePayPaymentRequest | undefined
   ) => ReactNode;
   paymentMethodData: Array<PaymentMethodData>;
   paymentDetails: PaymentDetailsInit;
@@ -24,6 +24,10 @@ type ApplePayProps = {
 
 interface PaymentRequestEvents {
   onMerchantValidation: (event: ApplePayMerchantValidationEvent) => void;
+  onPaymentMethodChange: (event: PaymentMethodChangeEvent) => void;
+  onShippingAddressChange: (event: PaymentRequestUpdateEvent) => void;
+  onShippingOptionChange: (event: PaymentRequestUpdateEvent) => void;
+  onComplete: (event: PaymentRequestUpdateEvent) => void;
 }
 
 export function ApplePay({
@@ -48,25 +52,33 @@ export function ApplePay({
    *  {request => <button onClick={() => request.show()}>Pay</button>}
    * </ApplePay>
    */
-  const paymentRequest = async () => {
+  const paymentRequest = () => {
     // Consider falling back to Apple Pay JS if Payment Request is not available.
     if (!PaymentRequest) {
       return;
     }
 
     // Create PaymentRequest
-    const request = new PaymentRequest(
+    const paymentRequest = new PaymentRequest(
       paymentMethodData,
       paymentDetails,
       paymentOptions
     ) as ApplePayPaymentRequest;
+
+    paymentRequest.addEventListener("merchantvalidation", (event) => {
+      onMerchantValidation?.(event as ApplePayMerchantValidationEvent);
+    });
+
+    paymentRequest.addEventListener("paymentmethodchange", (event) => {
+      onPaymentMethodChange?.(event as ApplePayPaymentMethodChangeEvent);
+    });
 
     // Cast the request to ApplePayPaymentRequest to access onmerchantvalidation
     request.onmerchantvalidation = (event: ApplePayMerchantValidationEvent) => {
       onMerchantValidation?.(event);
     };
 
-    return request;
+    return paymentRequest;
   };
 
   return children(paymentRequest);
@@ -97,5 +109,11 @@ export function ApplePayButton({
     };
   };
 
-  return <apple-pay-button {...buttonProps} ref={buttonRef} />;
+  return (
+    <apple-pay-button
+      {...buttonProps}
+      style={{ visibility: "hidden" }}
+      ref={buttonRef}
+    />
+  );
 }

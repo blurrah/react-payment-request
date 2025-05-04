@@ -66,3 +66,9 @@ class ApplePayMerchantValidationEvent extends Event {
 interface ApplePayPaymentRequest extends PaymentRequest {
   onmerchantvalidation: (event: ApplePayMerchantValidationEvent) => void;
 }
+
+declare global {
+  interface PaymentRequestEventMap {
+    merchantvalidation: ApplePayMerchantValidationEvent;
+  }
+}
