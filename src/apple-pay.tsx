@@ -2,10 +2,6 @@
 import type { ReactNode } from "react";
 import { useLoadSuspenseScript } from "./use-load-suspense-script.ts";
 
-export function ApplePayProvider(): ReactNode {
-  return <div>ApplePayProvider</div>;
-}
-
 type ApplePayProps = {
   /**
    * The URL of the Apple Pay SDK script.
